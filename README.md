@@ -1,6 +1,8 @@
 # pi-comfort
 
-Personal comfort extensions and configuration experiments for [pi](https://pi.dev).
+These are the Pi extensions I created to make [Pi](https://pi.dev) more comfortable for me.
+
+This is **not** meant to be a universal workflow package. It is my personal comfort layer: small commands, UI affordances, and experiments that reduce friction in the way I use Pi. If any of it is useful to you, I recommend you **fork this repo** and adapt it to your own preferences instead of treating it as a canonical package.
 
 ## Extensions
 
@@ -19,26 +21,38 @@ Features:
 
 ### `/export-session-to-browser [output.html]`
 
-Exports the full current pi session to HTML using pi's built-in exporter, then opens it in your browser.
+Exports the full current Pi session to HTML using Pi's built-in exporter, then opens it in your browser.
 
 ## Install
 
-From this local checkout:
+From GitHub:
 
 ```bash
-pi install /absolute/path/to/pi-comfort
-```
-
-From GitHub after publishing:
-
-```bash
-pi install git:github.com/<you>/pi-comfort
+pi install git:github.com/oshineye/pi-comfort
 ```
 
 Project-local install:
 
 ```bash
-pi install -l git:github.com/<you>/pi-comfort
+pi install -l git:github.com/oshineye/pi-comfort
+```
+
+From a local checkout:
+
+```bash
+pi install /absolute/path/to/pi-comfort
+```
+
+## Forking recommended
+
+These extensions encode my preferences. The best way to use this repo is usually:
+
+1. Fork it.
+2. Rename/change/remove commands to match your workflow.
+3. Install your fork:
+
+```bash
+pi install git:github.com/<you>/pi-comfort
 ```
 
 ## Development
@@ -49,7 +63,7 @@ Run unit tests:
 npm test
 ```
 
-Check that pi can load the extension:
+Check that Pi can load the extension:
 
 ```bash
 npm run check:extension
@@ -61,7 +75,7 @@ During active local development, either install this package by path or copy/lin
 ~/.pi/agent/extensions/export-to-browser.ts
 ```
 
-Then reload pi:
+Then reload Pi:
 
 ```text
 /reload
@@ -69,4 +83,4 @@ Then reload pi:
 
 ## Repository shape
 
-This repo is intentionally a single personal pi package. If an extension becomes broadly useful, it can be split into its own package later.
+This repo is intentionally a single personal Pi package. If an extension becomes broadly useful, it can be split into its own package later.
