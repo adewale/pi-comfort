@@ -237,11 +237,11 @@ export function renderSessionSkimHtml(turns: SessionTurn[], metadata: { cwd: str
 			const active = idx === 0 ? " active" : "";
 			const when = turn.timestamp ? new Date(turn.timestamp).toLocaleString() : "";
 			const tools = Array.from(new Set(turn.tools));
-			const meta = [when, tools.length ? `${tools.length} tool type${tools.length === 1 ? "" : "s"}` : ""].filter(Boolean).join(" • ");
-			return `<li class="tree-node${active}" data-turn="${turn.index}">
+			const meta = [when, tools.length ? `${tools.length} tool type${tools.length === 1 ? "" : "s"}` : "no tools"].filter(Boolean).join(" • ");
+			return `<li class="tree-node${active}" data-turn="${turn.index}" data-search="${htmlEscape(`${turn.prompt} ${turn.assistantText} ${tools.join(" ")}`.toLowerCase())}">
 				<button type="button" class="tree-button" data-turn="${turn.index}" aria-selected="${idx === 0 ? "true" : "false"}">
 					<span class="twisty">▸</span>
-					<span class="node-main"><span class="node-title">${htmlEscape(truncateText(turn.prompt, 130))}</span>${meta ? `<span class="node-meta">${htmlEscape(meta)}</span>` : ""}</span>
+					<span class="node-main"><span class="node-title">${htmlEscape(truncateText(turn.prompt, 128))}</span><span class="node-meta">${htmlEscape(meta)}</span></span>
 				</button>
 			</li>`;
 		})
@@ -253,7 +253,7 @@ export function renderSessionSkimHtml(turns: SessionTurn[], metadata: { cwd: str
 			const active = idx === 0 ? " active" : "";
 			const when = turn.timestamp ? new Date(turn.timestamp).toLocaleString() : "";
 			return `<article class="turn-panel${active}" id="turn-${turn.index}" data-turn="${turn.index}">
-				<div class="panel-topline"><span>Prompt ${turn.index}</span>${when ? `<span>${htmlEscape(when)}</span>` : ""}</div>
+				<div class="panel-topline"><span>Prompt ${turn.index} of ${turns.length}</span>${when ? `<span>${htmlEscape(when)}</span>` : ""}</div>
 				<section class="prompt-card"><h2>Your prompt</h2><pre>${htmlEscape(turn.prompt)}</pre></section>
 				${tools.length ? `<section class="tool-card"><h2>Tools used</h2><div class="chips">${tools.map((tool) => `<span>${htmlEscape(tool)}</span>`).join("")}</div></section>` : ""}
 				<section class="response-card"><h2>Assistant output</h2><div class="markdown">${assistant}</div></section>
@@ -267,43 +267,46 @@ export function renderSessionSkimHtml(turns: SessionTurn[], metadata: { cwd: str
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Pi session browser</title>
 <style>
-:root { color-scheme: dark light; --bg:#0f1117; --card:#171a23; --card2:#1d2230; --text:#e6edf3; --muted:#8b949e; --accent:#7c9cff; --border:#303645; --code:#0b0d12; --link:#9cc8ff; --tree:#495064; }
-@media (prefers-color-scheme: light) { :root { --bg:#f6f8fa; --card:#fff; --card2:#f6f8fa; --text:#24292f; --muted:#57606a; --accent:#3451d1; --border:#d0d7de; --code:#f6f8fa; --link:#0969da; --tree:#afb8c1; } }
+:root { color-scheme: dark light; --bg:#0b0d12; --surface:#111520; --surface-2:#171c2a; --surface-3:#1f2637; --text:#eef3f8; --muted:#96a0b5; --faint:#687086; --accent:#8ea2ff; --accent-2:#7ee2b8; --border:#2b3346; --code:#080a0f; --link:#a9c8ff; --tree:#4b556d; --shadow:rgba(0,0,0,.32); }
+@media (prefers-color-scheme: light) { :root { --bg:#f4f1ea; --surface:#fffdf8; --surface-2:#f7f3ea; --surface-3:#eee8dc; --text:#24201a; --muted:#6f675c; --faint:#9a9183; --accent:#4b5bdc; --accent-2:#087f5b; --border:#ded6c8; --code:#f5efe4; --link:#234ecf; --tree:#b8ad9d; --shadow:rgba(65,48,22,.12); } }
 * { box-sizing: border-box; }
-body { margin:0; background:var(--bg); color:var(--text); font:15px/1.55 ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
-.shell { max-width: 1380px; margin:0 auto; padding:24px 18px 52px; }
-header { margin-bottom:16px; display:flex; justify-content:space-between; gap:16px; align-items:flex-end; }
-h1 { margin:0 0 4px; font-size:25px; letter-spacing:-.02em; } .meta { color:var(--muted); font-size:13px; overflow-wrap:anywhere; }
-.layout { display:grid; grid-template-columns:minmax(280px, 380px) minmax(0, 1fr); gap:16px; align-items:start; min-height:calc(100vh - 120px); }
-.tree-pane { position:sticky; top:16px; max-height:calc(100vh - 32px); overflow:auto; background:var(--card); border:1px solid var(--border); border-radius:16px; padding:14px; }
-.tree-header { display:flex; justify-content:space-between; align-items:center; margin:0 0 12px; color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.08em; }
+body { margin:0; min-height:100vh; background:radial-gradient(circle at 12% 0%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 32rem), radial-gradient(circle at 90% 8%, color-mix(in srgb, var(--accent-2) 14%, transparent), transparent 26rem), var(--bg); color:var(--text); font:15px/1.55 ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+.shell { max-width: 1440px; margin:0 auto; padding:26px 20px 56px; }
+header { margin-bottom:18px; display:flex; justify-content:space-between; gap:20px; align-items:end; }
+.eyebrow { color:var(--accent-2); font-size:12px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; margin-bottom:6px; }
+h1 { margin:0 0 6px; font-size:clamp(26px, 3vw, 40px); letter-spacing:-.045em; line-height:1.05; } .meta { color:var(--muted); font-size:13px; overflow-wrap:anywhere; }
+.header-card { min-width:220px; border:1px solid var(--border); background:color-mix(in srgb, var(--surface) 88%, transparent); border-radius:18px; padding:12px 14px; box-shadow:0 18px 50px var(--shadow); } .stat { display:block; font-size:26px; font-weight:760; letter-spacing:-.04em; } .stat-label { color:var(--muted); font-size:12px; }
+.layout { display:grid; grid-template-columns:minmax(320px, 410px) minmax(0, 1fr); gap:16px; align-items:start; min-height:calc(100vh - 130px); }
+.tree-pane { position:sticky; top:16px; max-height:calc(100vh - 32px); overflow:auto; background:linear-gradient(180deg, color-mix(in srgb, var(--surface) 96%, transparent), var(--surface-2)); border:1px solid var(--border); border-radius:22px; padding:14px; box-shadow:0 18px 50px var(--shadow); }
+.tree-header { display:flex; justify-content:space-between; align-items:center; margin:0 0 10px; color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.1em; }
+.search { width:100%; margin:0 0 12px; border:1px solid var(--border); border-radius:12px; background:var(--code); color:var(--text); padding:10px 11px; outline:none; } .search:focus { border-color:var(--accent); box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent); }
 .tree { list-style:none; padding:0; margin:0; position:relative; }
-.tree::before { content:""; position:absolute; left:12px; top:8px; bottom:8px; width:1px; background:var(--tree); opacity:.6; }
-.tree-node { position:relative; margin:2px 0; padding-left:22px; }
-.tree-node::before { content:""; position:absolute; left:12px; top:21px; width:14px; height:1px; background:var(--tree); opacity:.75; }
-.tree-button { width:100%; display:flex; gap:8px; align-items:flex-start; text-align:left; color:var(--text); background:transparent; border:1px solid transparent; border-radius:10px; padding:8px 9px; cursor:pointer; }
-.tree-button:hover { background:var(--card2); border-color:var(--border); }
-.tree-node.active .tree-button { background:color-mix(in srgb, var(--card2) 72%, var(--accent)); border-color:color-mix(in srgb, var(--accent) 55%, var(--border)); }
-.tree-node.active .twisty { transform:rotate(90deg); color:var(--accent); }
-.twisty { flex:0 0 auto; color:var(--muted); transition:transform .12s ease; }
-.node-main { min-width:0; display:block; } .node-title { display:block; font-weight:650; line-height:1.35; } .node-meta { display:block; color:var(--muted); font-size:12px; margin-top:2px; }
+.tree::before { content:""; position:absolute; left:13px; top:8px; bottom:8px; width:1px; background:linear-gradient(var(--tree), transparent); opacity:.8; }
+.tree-node { position:relative; margin:3px 0; padding-left:23px; }
+.tree-node::before { content:""; position:absolute; left:13px; top:22px; width:14px; height:1px; background:var(--tree); opacity:.8; }
+.tree-button { width:100%; display:flex; gap:8px; align-items:flex-start; text-align:left; color:var(--text); background:transparent; border:1px solid transparent; border-radius:13px; padding:9px 10px; cursor:pointer; }
+.tree-button:hover { background:var(--surface-3); border-color:var(--border); }
+.tree-node.active .tree-button { background:linear-gradient(135deg, color-mix(in srgb, var(--accent) 24%, var(--surface-3)), var(--surface-3)); border-color:color-mix(in srgb, var(--accent) 58%, var(--border)); box-shadow:inset 0 1px 0 rgba(255,255,255,.05); }
+.tree-node.active .twisty { transform:rotate(90deg); color:var(--accent-2); }
+.twisty { flex:0 0 auto; color:var(--muted); transition:transform .12s ease; margin-top:1px; }
+.node-main { min-width:0; display:block; } .node-title { display:block; font-weight:680; line-height:1.35; } .node-meta { display:block; color:var(--muted); font-size:12px; margin-top:3px; }
 .detail-pane { min-width:0; }
-.turn-panel { display:none; background:var(--card); border:1px solid var(--border); border-radius:16px; overflow:hidden; box-shadow:0 16px 40px rgba(0,0,0,.18); }
+.turn-panel { display:none; background:var(--surface); border:1px solid var(--border); border-radius:22px; overflow:hidden; box-shadow:0 18px 50px var(--shadow); }
 .turn-panel.active { display:block; }
-.panel-topline { display:flex; justify-content:space-between; gap:12px; padding:12px 18px; color:var(--muted); background:var(--card2); border-bottom:1px solid var(--border); font-size:13px; }
-.prompt-card, .tool-card, .response-card { padding:18px 20px; border-bottom:1px solid var(--border); } .response-card { border-bottom:0; }
-h2 { margin:0 0 10px; color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.08em; }
-pre { overflow:auto; white-space:pre-wrap; background:var(--code); border:1px solid var(--border); border-radius:10px; padding:12px; }
-.chips { display:flex; flex-wrap:wrap; gap:7px; } .chips span { border:1px solid var(--border); border-radius:999px; padding:3px 8px; background:var(--card2); color:var(--muted); font-size:12px; }
-.markdown > :first-child { margin-top:0; } .markdown > :last-child { margin-bottom:0; } .markdown h1, .markdown h2, .markdown h3 { color:var(--text); text-transform:none; letter-spacing:-.01em; font-size:revert; }
-a { color:var(--link); } code { background:var(--code); border:1px solid var(--border); border-radius:5px; padding:.12em .32em; } pre code { border:0; padding:0; }
+.panel-topline { display:flex; justify-content:space-between; gap:12px; padding:13px 20px; color:var(--muted); background:linear-gradient(90deg, var(--surface-2), color-mix(in srgb, var(--surface-2) 78%, var(--accent))); border-bottom:1px solid var(--border); font-size:13px; }
+.prompt-card, .tool-card, .response-card { padding:20px 22px; border-bottom:1px solid var(--border); } .response-card { border-bottom:0; }
+h2 { margin:0 0 10px; color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.11em; }
+pre { overflow:auto; white-space:pre-wrap; background:var(--code); border:1px solid var(--border); border-radius:14px; padding:13px; }
+.chips { display:flex; flex-wrap:wrap; gap:7px; } .chips span { border:1px solid var(--border); border-radius:999px; padding:4px 9px; background:var(--surface-2); color:var(--muted); font-size:12px; }
+.markdown { max-width: 82ch; } .markdown > :first-child { margin-top:0; } .markdown > :last-child { margin-bottom:0; } .markdown h1, .markdown h2, .markdown h3 { color:var(--text); text-transform:none; letter-spacing:-.02em; font-size:revert; }
+a { color:var(--link); } code { background:var(--code); border:1px solid var(--border); border-radius:6px; padding:.12em .32em; } pre code { border:0; padding:0; }
 .empty { color:var(--muted); }
-@media (max-width: 860px) { header { display:block; } .layout { grid-template-columns:1fr; } .tree-pane { position:static; max-height:42vh; } }
+@media (max-width: 900px) { header { display:block; } .header-card { margin-top:14px; } .layout { grid-template-columns:1fr; } .tree-pane { position:static; max-height:44vh; } }
 </style>
 </head>
 <body>
-<div class="shell"><header><div><h1>Pi session browser</h1><div class="meta">${turns.length} prompts • Generated ${htmlEscape(generated)} • Session ${htmlEscape(metadata.sessionId)} • ${htmlEscape(metadata.cwd)}</div></div></header>
-<div class="layout"><aside class="tree-pane"><div class="tree-header"><span>Your prompts</span><span>${turns.length}</span></div><ul class="tree">${treeItems || '<li class="empty">No user prompts found.</li>'}</ul></aside><main class="detail-pane">${panels || '<article class="turn-panel active"><section class="response-card"><p class="empty">No user prompts found.</p></section></article>'}</main></div></div>
+<div class="shell"><header><div><div class="eyebrow">Pi comfort export</div><h1>Session browser</h1><div class="meta">Generated ${htmlEscape(generated)} • Session ${htmlEscape(metadata.sessionId)} • ${htmlEscape(metadata.cwd)}</div></div><div class="header-card"><span class="stat">${turns.length}</span><span class="stat-label">prompts in this session</span></div></header>
+<div class="layout"><aside class="tree-pane"><div class="tree-header"><span>Prompt tree</span><span>${turns.length}</span></div><input class="search" id="tree-search" placeholder="Filter prompts…" autocomplete="off" /><ul class="tree">${treeItems || '<li class="empty">No user prompts found.</li>'}</ul></aside><main class="detail-pane">${panels || '<article class="turn-panel active"><section class="response-card"><p class="empty">No user prompts found.</p></section></article>'}</main></div></div>
 <script>
 const nodes = Array.from(document.querySelectorAll('.tree-node'));
 const buttons = Array.from(document.querySelectorAll('.tree-button'));
@@ -314,6 +317,10 @@ function selectTurn(id) {
   panels.forEach((panel) => panel.classList.toggle('active', panel.dataset.turn === id));
 }
 buttons.forEach((button) => button.addEventListener('click', () => selectTurn(button.dataset.turn)));
+document.getElementById('tree-search')?.addEventListener('input', (event) => {
+  const query = event.target.value.toLowerCase().trim();
+  nodes.forEach((node) => { node.hidden = query && !node.dataset.search.includes(query); });
+});
 </script>
 </body>
 </html>`;
@@ -324,7 +331,8 @@ export function renderResponseHtml(markdown: string, metadata: { cwd: string; se
 	const when = metadata.timestamp ? new Date(metadata.timestamp).toLocaleString() : generated;
 	const rendered = renderMarkdownToHtml(markdown);
 	const raw = htmlEscape(markdown);
-	const modelPrefix = metadata.model ? `Model: ${metadata.model} • ` : "";
+	const words = markdown.trim() ? markdown.trim().split(/\s+/).length : 0;
+	const modelPrefix = metadata.model ? `Model: ${metadata.model}` : "Model unavailable";
 
 	return String.raw`<!doctype html>
 <html lang="en">
@@ -333,46 +341,40 @@ export function renderResponseHtml(markdown: string, metadata: { cwd: string; se
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Pi latest response</title>
 <style>
-:root { color-scheme: dark light; --bg:#0f1117; --card:#171a23; --text:#e6edf3; --muted:#8b949e; --accent:#7c9cff; --border:#303645; --code:#0b0d12; --link:#9cc8ff; }
-@media (prefers-color-scheme: light) { :root { --bg:#f6f8fa; --card:#fff; --text:#24292f; --muted:#57606a; --accent:#3451d1; --border:#d0d7de; --code:#f6f8fa; --link:#0969da; } }
+:root { color-scheme: dark light; --bg:#0b0d12; --surface:#111520; --surface-2:#171c2a; --text:#eef3f8; --muted:#96a0b5; --accent:#8ea2ff; --accent-2:#7ee2b8; --border:#2b3346; --code:#080a0f; --link:#a9c8ff; --shadow:rgba(0,0,0,.32); }
+@media (prefers-color-scheme: light) { :root { --bg:#f4f1ea; --surface:#fffdf8; --surface-2:#f7f3ea; --text:#24201a; --muted:#6f675c; --accent:#4b5bdc; --accent-2:#087f5b; --border:#ded6c8; --code:#f5efe4; --link:#234ecf; --shadow:rgba(65,48,22,.12); } }
 * { box-sizing: border-box; }
-body { margin:0; background:radial-gradient(circle at top left, color-mix(in srgb, var(--accent) 18%, transparent), transparent 32rem), var(--bg); color:var(--text); font:16px/1.6 ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
-.shell { max-width: 980px; margin: 0 auto; padding: 32px 20px 64px; }
-header { display:flex; justify-content:space-between; gap:16px; align-items:flex-start; margin-bottom:18px; }
-h1 { margin:0 0 6px; font-size:24px; letter-spacing:-0.02em; }
+body { margin:0; min-height:100vh; background:radial-gradient(circle at 10% 0%, color-mix(in srgb, var(--accent) 20%, transparent), transparent 34rem), radial-gradient(circle at 90% 12%, color-mix(in srgb, var(--accent-2) 12%, transparent), transparent 28rem), var(--bg); color:var(--text); font:16px/1.65 ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+.shell { max-width: 1100px; margin: 0 auto; padding: 34px 20px 72px; }
+.masthead { display:grid; grid-template-columns:minmax(0, 1fr) auto; gap:18px; align-items:end; margin-bottom:18px; }
+.eyebrow { color:var(--accent-2); font-size:12px; font-weight:760; letter-spacing:.14em; text-transform:uppercase; margin-bottom:7px; }
+h1 { margin:0 0 6px; font-size:clamp(30px, 4vw, 52px); line-height:.98; letter-spacing:-.055em; }
 .meta { color:var(--muted); font-size:13px; overflow-wrap:anywhere; }
-.actions { display:flex; gap:8px; flex-wrap:wrap; }
-button { border:1px solid var(--border); color:var(--text); background:color-mix(in srgb, var(--card) 86%, var(--accent)); border-radius:8px; padding:7px 10px; cursor:pointer; }
+.actions { display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+button { border:1px solid var(--border); color:var(--text); background:linear-gradient(180deg, var(--surface-2), var(--surface)); border-radius:11px; padding:8px 11px; cursor:pointer; box-shadow:0 8px 24px var(--shadow); }
 button:hover { border-color:var(--accent); }
-.card { background:color-mix(in srgb, var(--card) 94%, transparent); border:1px solid var(--border); border-radius:16px; padding:26px; box-shadow:0 16px 40px rgba(0,0,0,.22); }
-.markdown > :first-child { margin-top:0; } .markdown > :last-child { margin-bottom:0; }
-h2,h3,h4 { line-height:1.25; margin:1.35em 0 .45em; letter-spacing:-0.015em; }
-h2 { padding-bottom:.25em; border-bottom:1px solid var(--border); }
-p,ul,ol,blockquote,pre,table { margin:.75em 0; }
-a { color:var(--link); }
-code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:.92em; background:var(--code); border:1px solid var(--border); border-radius:5px; padding:.12em .32em; }
-pre { overflow:auto; background:var(--code); border:1px solid var(--border); border-radius:12px; padding:14px 16px; }
-pre code { background:transparent; border:0; padding:0; font-size:13px; }
-blockquote { border-left:4px solid var(--accent); padding:.2em 1em; background:color-mix(in srgb, var(--card) 70%, transparent); border-radius:0 8px 8px 0; }
-li + li { margin-top:.2em; }
-hr { border:0; border-top:1px solid var(--border); margin:1.5em 0; }
+.stats { display:flex; gap:10px; margin:0 0 16px; flex-wrap:wrap; } .pill { border:1px solid var(--border); background:color-mix(in srgb, var(--surface) 88%, transparent); border-radius:999px; padding:6px 10px; color:var(--muted); font-size:13px; }
+.card { background:linear-gradient(180deg, color-mix(in srgb, var(--surface) 98%, transparent), var(--surface-2)); border:1px solid var(--border); border-radius:24px; box-shadow:0 20px 60px var(--shadow); overflow:hidden; }
+.article-bar { display:flex; justify-content:space-between; gap:12px; padding:13px 20px; background:var(--surface-2); border-bottom:1px solid var(--border); color:var(--muted); font-size:13px; }
+.markdown, .raw { padding:30px clamp(20px, 5vw, 58px); }
+.markdown { max-width: 86ch; margin:0 auto; } .markdown > :first-child { margin-top:0; } .markdown > :last-child { margin-bottom:0; }
+.markdown h1, .markdown h2, .markdown h3 { letter-spacing:-.035em; line-height:1.12; margin:1.35em 0 .45em; } .markdown h2 { padding-bottom:.25em; border-bottom:1px solid var(--border); }
+p,ul,ol,blockquote,pre,table { margin:.8em 0; } a { color:var(--link); }
+code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:.92em; background:var(--code); border:1px solid var(--border); border-radius:6px; padding:.12em .34em; }
+pre { overflow:auto; background:var(--code); border:1px solid var(--border); border-radius:14px; padding:15px 17px; } pre code { background:transparent; border:0; padding:0; font-size:13px; }
+blockquote { border-left:4px solid var(--accent-2); padding:.35em 1em; background:color-mix(in srgb, var(--surface) 70%, transparent); border-radius:0 10px 10px 0; }
 .raw { display:none; white-space:pre-wrap; font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
 body.show-raw .markdown { display:none; } body.show-raw .raw { display:block; }
-.toast { position:fixed; right:18px; bottom:18px; background:var(--card); border:1px solid var(--border); border-radius:10px; padding:10px 12px; color:var(--muted); opacity:0; transform:translateY(8px); transition:.18s; }
+.toast { position:fixed; right:18px; bottom:18px; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:10px 12px; color:var(--muted); opacity:0; transform:translateY(8px); transition:.18s; }
 .toast.show { opacity:1; transform:translateY(0); }
+@media (max-width: 760px) { .masthead { grid-template-columns:1fr; } .actions { justify-content:flex-start; } }
 </style>
 </head>
 <body>
 <div class="shell">
-<header>
-<div>
-<h1>Pi latest response</h1>
-<div class="meta">${htmlEscape(modelPrefix)}Generated: ${htmlEscape(generated)} • Response time: ${htmlEscape(when)}</div>
-<div class="meta">Session: ${htmlEscape(metadata.sessionId)} • ${htmlEscape(metadata.cwd)}</div>
-</div>
-<div class="actions"><button id="copy">Copy Markdown</button><button id="toggle">Raw / Rendered</button></div>
-</header>
-<main class="card"><article id="rendered" class="markdown">${rendered}</article><pre id="raw" class="raw">${raw}</pre></main>
+<header class="masthead"><div><div class="eyebrow">Pi comfort export</div><h1>Latest response</h1><div class="meta">${htmlEscape(modelPrefix)} • Generated ${htmlEscape(generated)} • Response time ${htmlEscape(when)}</div><div class="meta">Session ${htmlEscape(metadata.sessionId)} • ${htmlEscape(metadata.cwd)}</div></div><div class="actions"><button id="copy">Copy Markdown</button><button id="toggle">Raw / Rendered</button></div></header>
+<div class="stats"><span class="pill">${words} words</span><span class="pill">Standalone HTML</span><span class="pill">No network assets</span></div>
+<main class="card"><div class="article-bar"><span>Assistant output</span><span>Rendered from Markdown</span></div><article id="rendered" class="markdown">${rendered}</article><pre id="raw" class="raw">${raw}</pre></main>
 </div>
 <div id="toast" class="toast">Copied</div>
 <script>
@@ -383,7 +385,6 @@ document.getElementById('copy').onclick = async () => { await navigator.clipboar
 </body>
 </html>`;
 }
-
 export default function exportToBrowserExtension(pi: ExtensionAPI) {
 	pi.registerCommand("export-session-to-browser", {
 		description: "Open a skim-friendly HTML view of the current session, defaulting to your prompts",
