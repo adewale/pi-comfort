@@ -183,6 +183,104 @@ export function renderMarkdownToHtml(markdown: string): string {
 	return out.join("\n");
 }
 
+
+type SessionTurn = {
+	index: number;
+	prompt: string;
+	assistantText: string;
+	tools: string[];
+	timestamp?: number | string;
+};
+
+function truncateText(text: string, max = 180): string {
+	const compact = text.replace(/\s+/g, " ").trim();
+	return compact.length > max ? `${compact.slice(0, max - 1)}…` : compact;
+}
+
+function toolNamesFromContent(content: unknown): string[] {
+	if (!Array.isArray(content)) return [];
+	const names: string[] = [];
+	for (const item of content) {
+		if (!item || typeof item !== "object") continue;
+		const block = item as { type?: string; name?: unknown };
+		if (block.type === "toolCall" && typeof block.name === "string") names.push(block.name);
+	}
+	return names;
+}
+
+export function buildSessionTurnsFromBranch(branch: unknown[]): SessionTurn[] {
+	const turns: SessionTurn[] = [];
+	let current: SessionTurn | undefined;
+	for (const entry of branch) {
+		const record = entry as any;
+		const message = record?.type === "message" ? record.message : undefined;
+		if (!message?.role) continue;
+		if (message.role === "user") {
+			const prompt = textFromContent(message.content);
+			if (!prompt) continue;
+			current = { index: turns.length + 1, prompt, assistantText: "", tools: [], timestamp: message.timestamp ?? record.timestamp };
+			turns.push(current);
+			continue;
+		}
+		if (!current || message.role !== "assistant") continue;
+		const text = textFromContent(message.content);
+		if (text) current.assistantText = current.assistantText ? `${current.assistantText}\n\n${text}` : text;
+		current.tools.push(...toolNamesFromContent(message.content));
+	}
+	return turns;
+}
+
+export function renderSessionSkimHtml(turns: SessionTurn[], metadata: { cwd: string; sessionId: string }): string {
+	const generated = new Date().toLocaleString();
+	const promptItems = turns
+		.map((turn) => {
+			const when = turn.timestamp ? new Date(turn.timestamp).toLocaleString() : "";
+			const tools = Array.from(new Set(turn.tools));
+			const assistant = turn.assistantText ? renderMarkdownToHtml(turn.assistantText) : '<p class="empty">No assistant text captured for this turn.</p>';
+			return `<section class="turn" id="turn-${turn.index}">
+				<details>
+					<summary><span class="num">${turn.index}</span><span class="prompt">${htmlEscape(truncateText(turn.prompt, 220))}</span></summary>
+					<div class="turn-meta">${htmlEscape(when)}${tools.length ? ` • Tools: ${htmlEscape(tools.join(", "))}` : ""}</div>
+					<div class="prompt-full"><h3>Your prompt</h3><pre>${htmlEscape(turn.prompt)}</pre></div>
+					<div class="assistant-full"><h3>Assistant response</h3><div class="markdown">${assistant}</div></div>
+				</details>
+			</section>`;
+		})
+		.join("\n");
+	const nav = turns.map((turn) => `<li><a href="#turn-${turn.index}">${htmlEscape(truncateText(turn.prompt, 120))}</a></li>`).join("\n");
+	return String.raw`<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Pi session skim</title>
+<style>
+:root { color-scheme: dark light; --bg:#0f1117; --card:#171a23; --text:#e6edf3; --muted:#8b949e; --accent:#7c9cff; --border:#303645; --code:#0b0d12; --link:#9cc8ff; }
+@media (prefers-color-scheme: light) { :root { --bg:#f6f8fa; --card:#fff; --text:#24292f; --muted:#57606a; --accent:#3451d1; --border:#d0d7de; --code:#f6f8fa; --link:#0969da; } }
+* { box-sizing: border-box; } body { margin:0; background:var(--bg); color:var(--text); font:15px/1.55 ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+.shell { max-width: 1180px; margin:0 auto; padding:28px 18px 60px; }
+header { margin-bottom:18px; } h1 { margin:0 0 6px; font-size:26px; } .meta { color:var(--muted); font-size:13px; overflow-wrap:anywhere; }
+.layout { display:grid; grid-template-columns:minmax(220px, 320px) minmax(0, 1fr); gap:18px; align-items:start; }
+nav { position:sticky; top:16px; max-height:calc(100vh - 32px); overflow:auto; background:var(--card); border:1px solid var(--border); border-radius:14px; padding:14px; }
+nav h2 { margin:0 0 10px; font-size:14px; color:var(--muted); text-transform:uppercase; letter-spacing:.08em; } nav ol { margin:0; padding-left:20px; } nav li { margin:.35em 0; } a { color:var(--link); text-decoration:none; } a:hover { text-decoration:underline; }
+.turn { margin-bottom:10px; background:var(--card); border:1px solid var(--border); border-radius:14px; overflow:hidden; }
+summary { cursor:pointer; display:flex; gap:12px; align-items:flex-start; padding:13px 15px; } summary:hover { background:color-mix(in srgb, var(--card) 88%, var(--accent)); }
+.num { flex:0 0 auto; color:var(--muted); font-variant-numeric:tabular-nums; } .prompt { font-weight:600; }
+.turn-meta { color:var(--muted); font-size:12px; padding:0 15px 10px 48px; }
+.prompt-full, .assistant-full { border-top:1px solid var(--border); padding:14px 18px; } h3 { margin:0 0 8px; color:var(--muted); font-size:13px; text-transform:uppercase; letter-spacing:.08em; }
+pre { overflow:auto; white-space:pre-wrap; background:var(--code); border:1px solid var(--border); border-radius:10px; padding:12px; }
+.markdown > :first-child { margin-top:0; } .markdown > :last-child { margin-bottom:0; } code { background:var(--code); border:1px solid var(--border); border-radius:5px; padding:.12em .32em; } pre code { border:0; padding:0; }
+.empty { color:var(--muted); }
+@media (max-width: 820px) { .layout { grid-template-columns:1fr; } nav { position:static; max-height:none; } }
+</style>
+</head>
+<body>
+<div class="shell"><header><h1>Pi session skim</h1><div class="meta">${turns.length} prompts • Generated ${htmlEscape(generated)} • Session ${htmlEscape(metadata.sessionId)} • ${htmlEscape(metadata.cwd)}</div></header>
+<div class="layout"><nav><h2>Your prompts</h2><ol>${nav}</ol></nav><main>${promptItems || '<p class="empty">No user prompts found.</p>'}</main></div></div>
+</body>
+</html>`;
+}
+
 export function renderResponseHtml(markdown: string, metadata: { cwd: string; sessionId: string; model?: string; timestamp?: number | string }): string {
 	const payload = JSON.stringify(markdown).replace(/</g, "\\u003c");
 	const generated = new Date().toLocaleString();
@@ -251,22 +349,20 @@ document.getElementById('copy').onclick = async () => { await navigator.clipboar
 
 export default function exportToBrowserExtension(pi: ExtensionAPI) {
 	pi.registerCommand("export-session-to-browser", {
-		description: "Export the full current session to HTML and open it in the browser",
+		description: "Open a skim-friendly HTML view of the current session, defaulting to your prompts",
 		handler: async (args, ctx) => {
 			const options = parseCommandArgs(args);
 			if (options.help) return notify(ctx, "Usage: /export-session-to-browser [output.html]", "info");
 			try {
 				await ctx.waitForIdle();
-				const sessionFile = ctx.sessionManager.getSessionFile();
-				if (!sessionFile) return notify(ctx, "Cannot export: this is an in-memory session", "error");
 				const outputPath = options.path ? ensureHtmlPath(expandPath(options.path, ctx.cwd)) : defaultOutputPath("session", ctx.sessionManager.getSessionId());
 				mkdirSync(dirname(outputPath), { recursive: true });
-				const exported = await pi.exec("pi", ["--export", sessionFile, outputPath], { timeout: 120_000 });
-				if (exported.code !== 0) return notify(ctx, `Full session export failed: ${commandOutput(exported) || "unknown error"}`, "error");
+				const turns = buildSessionTurnsFromBranch(ctx.sessionManager.getBranch() as unknown[]);
+				writeFileSync(outputPath, renderSessionSkimHtml(turns, { cwd: ctx.cwd, sessionId: ctx.sessionManager.getSessionId() }), "utf8");
 				const opened = await openInBrowser(pi, ctx, outputPath);
-				if (opened) notify(ctx, `Full session exported and opened: ${outputPath}`, "info");
+				if (opened) notify(ctx, `Session skim opened: ${outputPath}`, "info");
 			} catch (error) {
-				notify(ctx, `Full session export failed: ${error instanceof Error ? error.message : String(error)}`, "error");
+				notify(ctx, `Session skim export failed: ${error instanceof Error ? error.message : String(error)}`, "error");
 			}
 		},
 	});
