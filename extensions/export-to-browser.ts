@@ -270,12 +270,12 @@ export function renderSessionSkimHtml(turns: SessionTurn[], metadata: { cwd: str
 :root { color-scheme: dark light; --bg:#0b0d12; --surface:#111520; --surface-2:#171c2a; --surface-3:#1f2637; --text:#eef3f8; --muted:#96a0b5; --faint:#687086; --accent:#8ea2ff; --accent-2:#7ee2b8; --border:#2b3346; --code:#080a0f; --link:#a9c8ff; --tree:#4b556d; --shadow:rgba(0,0,0,.32); }
 @media (prefers-color-scheme: light) { :root { --bg:#f4f1ea; --surface:#fffdf8; --surface-2:#f7f3ea; --surface-3:#eee8dc; --text:#24201a; --muted:#6f675c; --faint:#9a9183; --accent:#4b5bdc; --accent-2:#087f5b; --border:#ded6c8; --code:#f5efe4; --link:#234ecf; --tree:#b8ad9d; --shadow:rgba(65,48,22,.12); } }
 * { box-sizing: border-box; }
-body { margin:0; min-height:100vh; background:radial-gradient(circle at 12% 0%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 32rem), radial-gradient(circle at 90% 8%, color-mix(in srgb, var(--accent-2) 14%, transparent), transparent 26rem), var(--bg); color:var(--text); font:15px/1.55 ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+body { margin:0; min-height:100vh; background:radial-gradient(circle at 10% 0%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 30rem), radial-gradient(circle at 92% 10%, color-mix(in srgb, var(--accent-2) 8%, transparent), transparent 24rem), var(--bg); color:var(--text); font:15px/1.55 ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; overflow-wrap:anywhere; }
 .shell { max-width: 1440px; margin:0 auto; padding:26px 20px 56px; }
 header { margin-bottom:18px; display:flex; justify-content:space-between; gap:20px; align-items:end; }
 .eyebrow { color:var(--accent-2); font-size:12px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; margin-bottom:6px; }
-h1 { margin:0 0 6px; font-size:clamp(26px, 3vw, 40px); letter-spacing:-.045em; line-height:1.05; } .meta { color:var(--muted); font-size:13px; overflow-wrap:anywhere; }
-.header-card { min-width:220px; border:1px solid var(--border); background:color-mix(in srgb, var(--surface) 88%, transparent); border-radius:18px; padding:12px 14px; box-shadow:0 18px 50px var(--shadow); } .stat { display:block; font-size:26px; font-weight:760; letter-spacing:-.04em; } .stat-label { color:var(--muted); font-size:12px; }
+h1 { margin:0 0 6px; font-size:clamp(28px, 3vw, 42px); letter-spacing:-.05em; line-height:1.03; } .accent-word { color:var(--accent-2); font-style:italic; } .meta { color:var(--muted); font-size:13px; overflow-wrap:anywhere; }
+.header-card { min-width:220px; border:1px solid var(--border); background:color-mix(in srgb, var(--surface) 88%, transparent); border-radius:18px; padding:12px 14px; box-shadow:0 12px 34px color-mix(in srgb, var(--shadow) 70%, transparent); } .stat { display:block; font-size:26px; font-weight:760; letter-spacing:-.04em; } .stat-label { color:var(--muted); font-size:12px; }
 .layout { display:grid; grid-template-columns:minmax(320px, 410px) minmax(0, 1fr); gap:16px; align-items:start; min-height:calc(100vh - 130px); }
 .tree-pane { position:sticky; top:16px; max-height:calc(100vh - 32px); overflow:auto; background:linear-gradient(180deg, color-mix(in srgb, var(--surface) 96%, transparent), var(--surface-2)); border:1px solid var(--border); border-radius:22px; padding:14px; box-shadow:0 18px 50px var(--shadow); }
 .tree-header { display:flex; justify-content:space-between; align-items:center; margin:0 0 10px; color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.1em; }
@@ -296,16 +296,16 @@ h1 { margin:0 0 6px; font-size:clamp(26px, 3vw, 40px); letter-spacing:-.045em; l
 .panel-topline { display:flex; justify-content:space-between; gap:12px; padding:13px 20px; color:var(--muted); background:linear-gradient(90deg, var(--surface-2), color-mix(in srgb, var(--surface-2) 78%, var(--accent))); border-bottom:1px solid var(--border); font-size:13px; }
 .prompt-card, .tool-card, .response-card { padding:20px 22px; border-bottom:1px solid var(--border); } .response-card { border-bottom:0; }
 h2 { margin:0 0 10px; color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.11em; }
-pre { overflow:auto; white-space:pre-wrap; background:var(--code); border:1px solid var(--border); border-radius:14px; padding:13px; }
+pre { overflow:visible; white-space:pre-wrap; overflow-wrap:anywhere; word-break:break-word; background:var(--code); border:1px solid var(--border); border-radius:14px; padding:13px; }
 .chips { display:flex; flex-wrap:wrap; gap:7px; } .chips span { border:1px solid var(--border); border-radius:999px; padding:4px 9px; background:var(--surface-2); color:var(--muted); font-size:12px; }
-.markdown { max-width: 82ch; } .markdown > :first-child { margin-top:0; } .markdown > :last-child { margin-bottom:0; } .markdown h1, .markdown h2, .markdown h3 { color:var(--text); text-transform:none; letter-spacing:-.02em; font-size:revert; }
-a { color:var(--link); } code { background:var(--code); border:1px solid var(--border); border-radius:6px; padding:.12em .32em; } pre code { border:0; padding:0; }
+.markdown { max-width: 82ch; overflow-wrap:anywhere; } .markdown > :first-child { margin-top:0; } .markdown > :last-child { margin-bottom:0; } .markdown h1, .markdown h2, .markdown h3 { color:var(--text); text-transform:none; letter-spacing:-.02em; font-size:revert; } .markdown table { width:100%; table-layout:fixed; border-collapse:collapse; } .markdown th, .markdown td { overflow-wrap:anywhere; }
+a { color:var(--link); } code { background:var(--code); border:1px solid var(--border); border-radius:6px; padding:.12em .32em; overflow-wrap:anywhere; } pre code { border:0; padding:0; white-space:pre-wrap; overflow-wrap:anywhere; word-break:break-word; }
 .empty { color:var(--muted); }
 @media (max-width: 900px) { header { display:block; } .header-card { margin-top:14px; } .layout { grid-template-columns:1fr; } .tree-pane { position:static; max-height:44vh; } }
 </style>
 </head>
 <body>
-<div class="shell"><header><div><div class="eyebrow">Pi comfort export</div><h1>Session browser</h1><div class="meta">Generated ${htmlEscape(generated)} • Session ${htmlEscape(metadata.sessionId)} • ${htmlEscape(metadata.cwd)}</div></div><div class="header-card"><span class="stat">${turns.length}</span><span class="stat-label">prompts in this session</span></div></header>
+<div class="shell"><header><div><div class="eyebrow">Pi comfort export</div><h1>Session <span class="accent-word">browser</span></h1><div class="meta">Generated ${htmlEscape(generated)} • Session ${htmlEscape(metadata.sessionId)} • ${htmlEscape(metadata.cwd)}</div></div><div class="header-card"><span class="stat">${turns.length}</span><span class="stat-label">prompts in this session</span></div></header>
 <div class="layout"><aside class="tree-pane"><div class="tree-header"><span>Prompt tree</span><span>${turns.length}</span></div><input class="search" id="tree-search" placeholder="Filter prompts…" autocomplete="off" /><ul class="tree">${treeItems || '<li class="empty">No user prompts found.</li>'}</ul></aside><main class="detail-pane">${panels || '<article class="turn-panel active"><section class="response-card"><p class="empty">No user prompts found.</p></section></article>'}</main></div></div>
 <script>
 const nodes = Array.from(document.querySelectorAll('.tree-node'));
@@ -344,11 +344,11 @@ export function renderResponseHtml(markdown: string, metadata: { cwd: string; se
 :root { color-scheme: dark light; --bg:#0b0d12; --surface:#111520; --surface-2:#171c2a; --text:#eef3f8; --muted:#96a0b5; --accent:#8ea2ff; --accent-2:#7ee2b8; --border:#2b3346; --code:#080a0f; --link:#a9c8ff; --shadow:rgba(0,0,0,.32); }
 @media (prefers-color-scheme: light) { :root { --bg:#f4f1ea; --surface:#fffdf8; --surface-2:#f7f3ea; --text:#24201a; --muted:#6f675c; --accent:#4b5bdc; --accent-2:#087f5b; --border:#ded6c8; --code:#f5efe4; --link:#234ecf; --shadow:rgba(65,48,22,.12); } }
 * { box-sizing: border-box; }
-body { margin:0; min-height:100vh; background:radial-gradient(circle at 10% 0%, color-mix(in srgb, var(--accent) 20%, transparent), transparent 34rem), radial-gradient(circle at 90% 12%, color-mix(in srgb, var(--accent-2) 12%, transparent), transparent 28rem), var(--bg); color:var(--text); font:16px/1.65 ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+body { margin:0; min-height:100vh; background:radial-gradient(circle at 10% 0%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 32rem), radial-gradient(circle at 90% 12%, color-mix(in srgb, var(--accent-2) 8%, transparent), transparent 26rem), var(--bg); color:var(--text); font:16px/1.65 ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; overflow-wrap:anywhere; }
 .shell { max-width: 1100px; margin: 0 auto; padding: 34px 20px 72px; }
 .masthead { display:grid; grid-template-columns:minmax(0, 1fr) auto; gap:18px; align-items:end; margin-bottom:18px; }
 .eyebrow { color:var(--accent-2); font-size:12px; font-weight:760; letter-spacing:.14em; text-transform:uppercase; margin-bottom:7px; }
-h1 { margin:0 0 6px; font-size:clamp(30px, 4vw, 52px); line-height:.98; letter-spacing:-.055em; }
+h1 { margin:0 0 6px; font-size:clamp(32px, 4vw, 54px); line-height:.98; letter-spacing:-.06em; } .accent-word { color:var(--accent-2); font-style:italic; }
 .meta { color:var(--muted); font-size:13px; overflow-wrap:anywhere; }
 .actions { display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
 button { border:1px solid var(--border); color:var(--text); background:linear-gradient(180deg, var(--surface-2), var(--surface)); border-radius:11px; padding:8px 11px; cursor:pointer; box-shadow:0 8px 24px var(--shadow); }
@@ -357,13 +357,13 @@ button:hover { border-color:var(--accent); }
 .card { background:linear-gradient(180deg, color-mix(in srgb, var(--surface) 98%, transparent), var(--surface-2)); border:1px solid var(--border); border-radius:24px; box-shadow:0 20px 60px var(--shadow); overflow:hidden; }
 .article-bar { display:flex; justify-content:space-between; gap:12px; padding:13px 20px; background:var(--surface-2); border-bottom:1px solid var(--border); color:var(--muted); font-size:13px; }
 .markdown, .raw { padding:30px clamp(20px, 5vw, 58px); }
-.markdown { max-width: 86ch; margin:0 auto; } .markdown > :first-child { margin-top:0; } .markdown > :last-child { margin-bottom:0; }
+.markdown { max-width: 86ch; margin:0 auto; overflow-wrap:anywhere; } .markdown > :first-child { margin-top:0; } .markdown > :last-child { margin-bottom:0; } .markdown table { width:100%; table-layout:fixed; border-collapse:collapse; } .markdown th, .markdown td { overflow-wrap:anywhere; }
 .markdown h1, .markdown h2, .markdown h3 { letter-spacing:-.035em; line-height:1.12; margin:1.35em 0 .45em; } .markdown h2 { padding-bottom:.25em; border-bottom:1px solid var(--border); }
 p,ul,ol,blockquote,pre,table { margin:.8em 0; } a { color:var(--link); }
 code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:.92em; background:var(--code); border:1px solid var(--border); border-radius:6px; padding:.12em .34em; }
-pre { overflow:auto; background:var(--code); border:1px solid var(--border); border-radius:14px; padding:15px 17px; } pre code { background:transparent; border:0; padding:0; font-size:13px; }
+pre { overflow:visible; white-space:pre-wrap; overflow-wrap:anywhere; word-break:break-word; background:var(--code); border:1px solid var(--border); border-radius:14px; padding:15px 17px; } pre code { background:transparent; border:0; padding:0; font-size:13px; white-space:pre-wrap; overflow-wrap:anywhere; word-break:break-word; }
 blockquote { border-left:4px solid var(--accent-2); padding:.35em 1em; background:color-mix(in srgb, var(--surface) 70%, transparent); border-radius:0 10px 10px 0; }
-.raw { display:none; white-space:pre-wrap; font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+.raw { display:none; white-space:pre-wrap; overflow-wrap:anywhere; word-break:break-word; font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
 body.show-raw .markdown { display:none; } body.show-raw .raw { display:block; }
 .toast { position:fixed; right:18px; bottom:18px; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:10px 12px; color:var(--muted); opacity:0; transform:translateY(8px); transition:.18s; }
 .toast.show { opacity:1; transform:translateY(0); }
@@ -372,7 +372,7 @@ body.show-raw .markdown { display:none; } body.show-raw .raw { display:block; }
 </head>
 <body>
 <div class="shell">
-<header class="masthead"><div><div class="eyebrow">Pi comfort export</div><h1>Latest response</h1><div class="meta">${htmlEscape(modelPrefix)} • Generated ${htmlEscape(generated)} • Response time ${htmlEscape(when)}</div><div class="meta">Session ${htmlEscape(metadata.sessionId)} • ${htmlEscape(metadata.cwd)}</div></div><div class="actions"><button id="copy">Copy Markdown</button><button id="toggle">Raw / Rendered</button></div></header>
+<header class="masthead"><div><div class="eyebrow">Pi comfort export</div><h1>Latest <span class="accent-word">response</span></h1><div class="meta">${htmlEscape(modelPrefix)} • Generated ${htmlEscape(generated)} • Response time ${htmlEscape(when)}</div><div class="meta">Session ${htmlEscape(metadata.sessionId)} • ${htmlEscape(metadata.cwd)}</div></div><div class="actions"><button id="copy">Copy Markdown</button><button id="toggle">Raw / Rendered</button></div></header>
 <div class="stats"><span class="pill">${words} words</span><span class="pill">Standalone HTML</span><span class="pill">No network assets</span></div>
 <main class="card"><div class="article-bar"><span>Assistant output</span><span>Rendered from Markdown</span></div><article id="rendered" class="markdown">${rendered}</article><pre id="raw" class="raw">${raw}</pre></main>
 </div>
