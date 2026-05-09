@@ -232,55 +232,92 @@ export function buildSessionTurnsFromBranch(branch: unknown[]): SessionTurn[] {
 
 export function renderSessionSkimHtml(turns: SessionTurn[], metadata: { cwd: string; sessionId: string }): string {
 	const generated = new Date().toLocaleString();
-	const promptItems = turns
-		.map((turn) => {
+	const treeItems = turns
+		.map((turn, idx) => {
+			const active = idx === 0 ? " active" : "";
 			const when = turn.timestamp ? new Date(turn.timestamp).toLocaleString() : "";
 			const tools = Array.from(new Set(turn.tools));
-			const assistant = turn.assistantText ? renderMarkdownToHtml(turn.assistantText) : '<p class="empty">No assistant text captured for this turn.</p>';
-			return `<section class="turn" id="turn-${turn.index}">
-				<details>
-					<summary><span class="num">${turn.index}</span><span class="prompt">${htmlEscape(truncateText(turn.prompt, 220))}</span></summary>
-					<div class="turn-meta">${htmlEscape(when)}${tools.length ? ` • Tools: ${htmlEscape(tools.join(", "))}` : ""}</div>
-					<div class="prompt-full"><h3>Your prompt</h3><pre>${htmlEscape(turn.prompt)}</pre></div>
-					<div class="assistant-full"><h3>Assistant response</h3><div class="markdown">${assistant}</div></div>
-				</details>
-			</section>`;
+			const meta = [when, tools.length ? `${tools.length} tool type${tools.length === 1 ? "" : "s"}` : ""].filter(Boolean).join(" • ");
+			return `<li class="tree-node${active}" data-turn="${turn.index}">
+				<button type="button" class="tree-button" data-turn="${turn.index}" aria-selected="${idx === 0 ? "true" : "false"}">
+					<span class="twisty">▸</span>
+					<span class="node-main"><span class="node-title">${htmlEscape(truncateText(turn.prompt, 130))}</span>${meta ? `<span class="node-meta">${htmlEscape(meta)}</span>` : ""}</span>
+				</button>
+			</li>`;
 		})
 		.join("\n");
-	const nav = turns.map((turn) => `<li><a href="#turn-${turn.index}">${htmlEscape(truncateText(turn.prompt, 120))}</a></li>`).join("\n");
+	const panels = turns
+		.map((turn, idx) => {
+			const tools = Array.from(new Set(turn.tools));
+			const assistant = turn.assistantText ? renderMarkdownToHtml(turn.assistantText) : '<p class="empty">No assistant text captured for this turn.</p>';
+			const active = idx === 0 ? " active" : "";
+			const when = turn.timestamp ? new Date(turn.timestamp).toLocaleString() : "";
+			return `<article class="turn-panel${active}" id="turn-${turn.index}" data-turn="${turn.index}">
+				<div class="panel-topline"><span>Prompt ${turn.index}</span>${when ? `<span>${htmlEscape(when)}</span>` : ""}</div>
+				<section class="prompt-card"><h2>Your prompt</h2><pre>${htmlEscape(turn.prompt)}</pre></section>
+				${tools.length ? `<section class="tool-card"><h2>Tools used</h2><div class="chips">${tools.map((tool) => `<span>${htmlEscape(tool)}</span>`).join("")}</div></section>` : ""}
+				<section class="response-card"><h2>Assistant output</h2><div class="markdown">${assistant}</div></section>
+			</article>`;
+		})
+		.join("\n");
 	return String.raw`<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Pi session skim</title>
+<title>Pi session browser</title>
 <style>
-:root { color-scheme: dark light; --bg:#0f1117; --card:#171a23; --text:#e6edf3; --muted:#8b949e; --accent:#7c9cff; --border:#303645; --code:#0b0d12; --link:#9cc8ff; }
-@media (prefers-color-scheme: light) { :root { --bg:#f6f8fa; --card:#fff; --text:#24292f; --muted:#57606a; --accent:#3451d1; --border:#d0d7de; --code:#f6f8fa; --link:#0969da; } }
-* { box-sizing: border-box; } body { margin:0; background:var(--bg); color:var(--text); font:15px/1.55 ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
-.shell { max-width: 1180px; margin:0 auto; padding:28px 18px 60px; }
-header { margin-bottom:18px; } h1 { margin:0 0 6px; font-size:26px; } .meta { color:var(--muted); font-size:13px; overflow-wrap:anywhere; }
-.layout { display:grid; grid-template-columns:minmax(220px, 320px) minmax(0, 1fr); gap:18px; align-items:start; }
-nav { position:sticky; top:16px; max-height:calc(100vh - 32px); overflow:auto; background:var(--card); border:1px solid var(--border); border-radius:14px; padding:14px; }
-nav h2 { margin:0 0 10px; font-size:14px; color:var(--muted); text-transform:uppercase; letter-spacing:.08em; } nav ol { margin:0; padding-left:20px; } nav li { margin:.35em 0; } a { color:var(--link); text-decoration:none; } a:hover { text-decoration:underline; }
-.turn { margin-bottom:10px; background:var(--card); border:1px solid var(--border); border-radius:14px; overflow:hidden; }
-summary { cursor:pointer; display:flex; gap:12px; align-items:flex-start; padding:13px 15px; } summary:hover { background:color-mix(in srgb, var(--card) 88%, var(--accent)); }
-.num { flex:0 0 auto; color:var(--muted); font-variant-numeric:tabular-nums; } .prompt { font-weight:600; }
-.turn-meta { color:var(--muted); font-size:12px; padding:0 15px 10px 48px; }
-.prompt-full, .assistant-full { border-top:1px solid var(--border); padding:14px 18px; } h3 { margin:0 0 8px; color:var(--muted); font-size:13px; text-transform:uppercase; letter-spacing:.08em; }
+:root { color-scheme: dark light; --bg:#0f1117; --card:#171a23; --card2:#1d2230; --text:#e6edf3; --muted:#8b949e; --accent:#7c9cff; --border:#303645; --code:#0b0d12; --link:#9cc8ff; --tree:#495064; }
+@media (prefers-color-scheme: light) { :root { --bg:#f6f8fa; --card:#fff; --card2:#f6f8fa; --text:#24292f; --muted:#57606a; --accent:#3451d1; --border:#d0d7de; --code:#f6f8fa; --link:#0969da; --tree:#afb8c1; } }
+* { box-sizing: border-box; }
+body { margin:0; background:var(--bg); color:var(--text); font:15px/1.55 ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+.shell { max-width: 1380px; margin:0 auto; padding:24px 18px 52px; }
+header { margin-bottom:16px; display:flex; justify-content:space-between; gap:16px; align-items:flex-end; }
+h1 { margin:0 0 4px; font-size:25px; letter-spacing:-.02em; } .meta { color:var(--muted); font-size:13px; overflow-wrap:anywhere; }
+.layout { display:grid; grid-template-columns:minmax(280px, 380px) minmax(0, 1fr); gap:16px; align-items:start; min-height:calc(100vh - 120px); }
+.tree-pane { position:sticky; top:16px; max-height:calc(100vh - 32px); overflow:auto; background:var(--card); border:1px solid var(--border); border-radius:16px; padding:14px; }
+.tree-header { display:flex; justify-content:space-between; align-items:center; margin:0 0 12px; color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.08em; }
+.tree { list-style:none; padding:0; margin:0; position:relative; }
+.tree::before { content:""; position:absolute; left:12px; top:8px; bottom:8px; width:1px; background:var(--tree); opacity:.6; }
+.tree-node { position:relative; margin:2px 0; padding-left:22px; }
+.tree-node::before { content:""; position:absolute; left:12px; top:21px; width:14px; height:1px; background:var(--tree); opacity:.75; }
+.tree-button { width:100%; display:flex; gap:8px; align-items:flex-start; text-align:left; color:var(--text); background:transparent; border:1px solid transparent; border-radius:10px; padding:8px 9px; cursor:pointer; }
+.tree-button:hover { background:var(--card2); border-color:var(--border); }
+.tree-node.active .tree-button { background:color-mix(in srgb, var(--card2) 72%, var(--accent)); border-color:color-mix(in srgb, var(--accent) 55%, var(--border)); }
+.tree-node.active .twisty { transform:rotate(90deg); color:var(--accent); }
+.twisty { flex:0 0 auto; color:var(--muted); transition:transform .12s ease; }
+.node-main { min-width:0; display:block; } .node-title { display:block; font-weight:650; line-height:1.35; } .node-meta { display:block; color:var(--muted); font-size:12px; margin-top:2px; }
+.detail-pane { min-width:0; }
+.turn-panel { display:none; background:var(--card); border:1px solid var(--border); border-radius:16px; overflow:hidden; box-shadow:0 16px 40px rgba(0,0,0,.18); }
+.turn-panel.active { display:block; }
+.panel-topline { display:flex; justify-content:space-between; gap:12px; padding:12px 18px; color:var(--muted); background:var(--card2); border-bottom:1px solid var(--border); font-size:13px; }
+.prompt-card, .tool-card, .response-card { padding:18px 20px; border-bottom:1px solid var(--border); } .response-card { border-bottom:0; }
+h2 { margin:0 0 10px; color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.08em; }
 pre { overflow:auto; white-space:pre-wrap; background:var(--code); border:1px solid var(--border); border-radius:10px; padding:12px; }
-.markdown > :first-child { margin-top:0; } .markdown > :last-child { margin-bottom:0; } code { background:var(--code); border:1px solid var(--border); border-radius:5px; padding:.12em .32em; } pre code { border:0; padding:0; }
+.chips { display:flex; flex-wrap:wrap; gap:7px; } .chips span { border:1px solid var(--border); border-radius:999px; padding:3px 8px; background:var(--card2); color:var(--muted); font-size:12px; }
+.markdown > :first-child { margin-top:0; } .markdown > :last-child { margin-bottom:0; } .markdown h1, .markdown h2, .markdown h3 { color:var(--text); text-transform:none; letter-spacing:-.01em; font-size:revert; }
+a { color:var(--link); } code { background:var(--code); border:1px solid var(--border); border-radius:5px; padding:.12em .32em; } pre code { border:0; padding:0; }
 .empty { color:var(--muted); }
-@media (max-width: 820px) { .layout { grid-template-columns:1fr; } nav { position:static; max-height:none; } }
+@media (max-width: 860px) { header { display:block; } .layout { grid-template-columns:1fr; } .tree-pane { position:static; max-height:42vh; } }
 </style>
 </head>
 <body>
-<div class="shell"><header><h1>Pi session skim</h1><div class="meta">${turns.length} prompts • Generated ${htmlEscape(generated)} • Session ${htmlEscape(metadata.sessionId)} • ${htmlEscape(metadata.cwd)}</div></header>
-<div class="layout"><nav><h2>Your prompts</h2><ol>${nav}</ol></nav><main>${promptItems || '<p class="empty">No user prompts found.</p>'}</main></div></div>
+<div class="shell"><header><div><h1>Pi session browser</h1><div class="meta">${turns.length} prompts • Generated ${htmlEscape(generated)} • Session ${htmlEscape(metadata.sessionId)} • ${htmlEscape(metadata.cwd)}</div></div></header>
+<div class="layout"><aside class="tree-pane"><div class="tree-header"><span>Your prompts</span><span>${turns.length}</span></div><ul class="tree">${treeItems || '<li class="empty">No user prompts found.</li>'}</ul></aside><main class="detail-pane">${panels || '<article class="turn-panel active"><section class="response-card"><p class="empty">No user prompts found.</p></section></article>'}</main></div></div>
+<script>
+const nodes = Array.from(document.querySelectorAll('.tree-node'));
+const buttons = Array.from(document.querySelectorAll('.tree-button'));
+const panels = Array.from(document.querySelectorAll('.turn-panel'));
+function selectTurn(id) {
+  nodes.forEach((node) => node.classList.toggle('active', node.dataset.turn === id));
+  buttons.forEach((button) => button.setAttribute('aria-selected', button.dataset.turn === id ? 'true' : 'false'));
+  panels.forEach((panel) => panel.classList.toggle('active', panel.dataset.turn === id));
+}
+buttons.forEach((button) => button.addEventListener('click', () => selectTurn(button.dataset.turn)));
+</script>
 </body>
 </html>`;
 }
-
 export function renderResponseHtml(markdown: string, metadata: { cwd: string; sessionId: string; model?: string; timestamp?: number | string }): string {
 	const payload = JSON.stringify(markdown).replace(/</g, "\\u003c");
 	const generated = new Date().toLocaleString();

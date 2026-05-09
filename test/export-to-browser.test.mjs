@@ -50,7 +50,7 @@ test("generated browser script is syntactically valid", () => {
   new Function(script);
 });
 
-test("session skim defaults to a navigable list of user prompts", () => {
+test("session browser defaults to a tree of prompts with right-hand output panes", () => {
   const turns = mod.buildSessionTurnsFromBranch([
     { type: "message", message: { role: "user", content: [{ type: "text", text: "First prompt" }] } },
     { type: "message", message: { role: "assistant", content: [{ type: "text", text: "First answer" }, { type: "toolCall", name: "read", arguments: {} }] } },
@@ -61,10 +61,13 @@ test("session skim defaults to a navigable list of user prompts", () => {
   assert.equal(turns[0].prompt, "First prompt");
   assert.equal(turns[0].tools[0], "read");
   const html = mod.renderSessionSkimHtml(turns, { cwd: "/tmp/project", sessionId: "abc123" });
-  assert.match(html, /<h2>Your prompts<\/h2>/);
+  assert.match(html, /<aside class="tree-pane">/);
+  assert.match(html, /<main class="detail-pane">/);
+  assert.match(html, /data-turn="1"/);
   assert.match(html, /First prompt/);
   assert.match(html, /Second prompt with details/);
   assert.match(html, /First answer/);
+  assert.match(html, /function selectTurn\(id\)/);
 });
 
 console.log("All export-to-browser tests passed");
