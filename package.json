@@ -1,0 +1,19 @@
+{
+  "name": "pi-comfort",
+  "version": "0.1.0",
+  "description": "Personal Pi comfort extensions and configuration experiments.",
+  "type": "module",
+  "private": true,
+  "keywords": ["pi-package", "pi", "pi-extension", "comfort", "workflow"],
+  "pi": {
+    "extensions": ["./extensions"]
+  },
+  "scripts": {
+    "test": "node test/export-to-browser.test.mjs",
+    "check:extension": "pi --no-extensions -e ./extensions/export-to-browser.ts --help >/tmp/pi-comfort-extension-check.txt"
+  },
+  "peerDependencies": {
+    "@mariozechner/pi-coding-agent": "*"
+  },
+  "devDependencies": {}
+}
