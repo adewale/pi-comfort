@@ -1,18 +1,7 @@
 import assert from "node:assert/strict";
-import { createJiti } from "/opt/homebrew/lib/node_modules/@mariozechner/pi-coding-agent/node_modules/jiti/lib/jiti.mjs";
-
-const jiti = createJiti(import.meta.url, { interopDefault: true });
-const mod = await jiti.import(new URL("../extensions/export-to-browser.ts", import.meta.url).pathname);
-
-function test(name, fn) {
-  try {
-    fn();
-    console.log(`ok - ${name}`);
-  } catch (error) {
-    console.error(`not ok - ${name}`);
-    throw error;
-  }
-}
+import { test } from "node:test";
+// Node >= 22.18 strips TypeScript types natively; the extension only imports types from Pi.
+import * as mod from "../extensions/export-to-browser.ts";
 
 test("parseCommandArgs handles empty, help, plain, and quoted paths", () => {
   assert.deepEqual(mod.parseCommandArgs(undefined), { help: false });
@@ -69,5 +58,3 @@ test("session browser defaults to a tree of prompts with right-hand output panes
   assert.match(html, /First answer/);
   assert.match(html, /function selectTurn\(id\)/);
 });
-
-console.log("All export-to-browser tests passed");

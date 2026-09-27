@@ -57,7 +57,7 @@ pi install git:github.com/<you>/pi-comfort
 
 ## Development
 
-Run unit tests:
+Run unit tests (Node 22.18+ loads the TypeScript extension directly, so no install is needed):
 
 ```bash
 npm test
