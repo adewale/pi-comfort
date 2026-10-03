@@ -3,6 +3,13 @@ import { test } from "node:test";
 // Node >= 22.18 strips TypeScript types natively; the extension only imports types from Pi.
 import { renderMarkdownToHtml, renderResponseHtml } from "../extensions/export-to-browser.ts";
 
+test("a wrapped list line stays inside its list item", () => {
+	assert.equal(
+		renderMarkdownToHtml("- first item\n  wrapped onto a second line\n- second item"),
+		"<ul><li>first item wrapped onto a second line</li><li>second item</li></ul>",
+	);
+});
+
 test("text after a list renders after the list, not above it", () => {
 	const html = renderMarkdownToHtml("Intro\n\n- a\n- b\n\nOutro");
 	assert.equal(html, "<p>Intro</p>\n<ul><li>a</li><li>b</li></ul>\n<p>Outro</p>");

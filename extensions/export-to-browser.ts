@@ -175,6 +175,11 @@ export function renderMarkdownToHtml(markdown: string): string {
 			out.push(`<blockquote>${inlineMarkdown(quote[1])}</blockquote>`);
 			continue;
 		}
+		if (list.length > 0) {
+			// Lazy continuation: a wrapped line belongs to the open list item.
+			list[list.length - 1] += ` ${line.trim()}`;
+			continue;
+		}
 		paragraph.push(line.trim());
 	}
 	flushParagraph();
