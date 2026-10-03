@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "description": "Personal Pi comfort extensions and configuration experiments.",
   "type": "module",
+  "engines": {
+    "node": ">=22.18"
+  },
   "private": true,
   "keywords": [
     "pi-package",
@@ -20,7 +23,7 @@
     ]
   },
   "scripts": {
-    "test": "node test/export-to-browser.test.mjs && node --test test/markdown.test.mjs",
+    "test": "node --test test/*.test.mjs",
     "check:extension": "pi --no-extensions -e ./extensions/export-to-browser.ts --help >/tmp/pi-comfort-extension-check.txt"
   },
   "peerDependencies": {
