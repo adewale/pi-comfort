@@ -10,6 +10,11 @@ test("a wrapped list line stays inside its list item", () => {
 	);
 });
 
+test("a new list marker right after a bullet is not merged into the item", () => {
+	assert.equal(renderMarkdownToHtml("- a\n  - nested\n- c"), "<ul><li>a</li><li>nested</li><li>c</li></ul>");
+	assert.equal(renderMarkdownToHtml("- a\n1. one\n2. two"), "<ul><li>a</li></ul>\n<p>1. one 2. two</p>");
+});
+
 test("text after a list renders after the list, not above it", () => {
 	const html = renderMarkdownToHtml("Intro\n\n- a\n- b\n\nOutro");
 	assert.equal(html, "<p>Intro</p>\n<ul><li>a</li><li>b</li></ul>\n<p>Outro</p>");
