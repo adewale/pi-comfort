@@ -175,6 +175,20 @@ export function renderMarkdownToHtml(markdown: string): string {
 			out.push(`<blockquote>${inlineMarkdown(quote[1])}</blockquote>`);
 			continue;
 		}
+		if (list.length > 0) {
+			// Nested bullets are flattened into the open list.
+			const nested = line.match(/^\s+[-*]\s+(.+)$/);
+			if (nested) {
+				list.push(nested[1]);
+				continue;
+			}
+			// Other list markers start a new block; anything else is a wrapped line of the open item.
+			if (/^\s*(\d+[.)]|\+)\s/.test(line)) flushList();
+			else {
+				list[list.length - 1] += ` ${line.trim()}`;
+				continue;
+			}
+		}
 		paragraph.push(line.trim());
 	}
 	flushParagraph();
