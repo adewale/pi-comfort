@@ -20,7 +20,7 @@
     ]
   },
   "scripts": {
-    "test": "node test/export-to-browser.test.mjs",
+    "test": "node test/export-to-browser.test.mjs && node --test test/markdown.test.mjs",
     "check:extension": "pi --no-extensions -e ./extensions/export-to-browser.ts --help >/tmp/pi-comfort-extension-check.txt"
   },
   "peerDependencies": {
