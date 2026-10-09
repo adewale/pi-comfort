@@ -57,9 +57,11 @@ pi install git:github.com/<you>/pi-comfort
 
 ## Development
 
-Run unit tests (Node 22.18+ loads the TypeScript extension directly, so no install is needed):
+Run the tests. Node 22.18+ loads the TypeScript extension directly. The only dev dependency is Playwright, which drives the generated pages in headless Chromium. `--legacy-peer-deps` skips installing Pi as a peer, which the tests do not need:
 
 ```bash
+npm install --legacy-peer-deps
+npx playwright install chromium
 npm test
 ```
 

@@ -29,5 +29,7 @@
   "peerDependencies": {
     "@mariozechner/pi-coding-agent": "*"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "playwright": "1.56.1"
+  }
 }

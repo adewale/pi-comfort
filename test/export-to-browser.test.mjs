@@ -32,13 +32,6 @@ test("renders markdown into server-side HTML so content exists without browser J
   assert.match(html, /<pre id="raw" class="raw">/);
 });
 
-test("generated browser script is syntactically valid", () => {
-  const html = mod.renderResponseHtml("Hello", { cwd: "/tmp", sessionId: "abc" });
-  const script = html.match(/<script>([\s\S]*)<\/script>/)?.[1];
-  assert.ok(script);
-  new Function(script);
-});
-
 test("session browser defaults to a tree of prompts with right-hand output panes", () => {
   const turns = mod.buildSessionTurnsFromBranch([
     { type: "message", message: { role: "user", content: [{ type: "text", text: "First prompt" }] } },
@@ -56,5 +49,4 @@ test("session browser defaults to a tree of prompts with right-hand output panes
   assert.match(html, /First prompt/);
   assert.match(html, /Second prompt with details/);
   assert.match(html, /First answer/);
-  assert.match(html, /function selectTurn\(id\)/);
 });
